@@ -20,7 +20,7 @@
       id: 'ts-1',
       code: 'TS-101',
       title: 'Integrar API de roteirização logística com rastreamento GPS',
-      assignee: 'Ana (Back-end)',
+      assignee: 'Júlia Egito',
       type: 'feature',
       status: 'in_progress',
       dueDate: getRelativeDate(1), // Vence amanhã (alerta âmbar)
@@ -28,13 +28,13 @@
       comments: [
         {
           id: 'c1',
-          author: 'Luana (Product Owner)',
+          author: 'Clara Barreto',
           text: 'O cliente precisa de resposta abaixo de 200ms para até 500 caminhões simultâneos.',
           date: 'Ontem às 14:30'
         },
         {
           id: 'c2',
-          author: 'Ana (Back-end)',
+          author: 'Fernanda',
           text: 'Adicionei camada de cache Redis. Testes de estresse começam amanhã.',
           date: 'Hoje às 10:15'
         }
@@ -44,7 +44,7 @@
       id: 'ts-2',
       code: 'TS-102',
       title: 'Módulo de prontuário eletrônico com assinatura digital',
-      assignee: 'Luana (Product Owner)',
+      assignee: 'Clara Barreto',
       type: 'feature',
       status: 'backlog',
       dueDate: getRelativeDate(5),
@@ -52,7 +52,7 @@
       comments: [
         {
           id: 'c3',
-          author: 'Marcos (Scrum Master)',
+          author: 'Clara Barreto',
           text: 'Depende da homologação jurídica do cliente antes de entrar no Sprint 25.',
           date: 'Hoje às 09:00'
         }
@@ -62,7 +62,7 @@
       id: 'ts-3',
       code: 'TS-103',
       title: 'Correção: Timeout no cálculo de frete interestadual',
-      assignee: 'Ana (Back-end)',
+      assignee: 'Fernanda',
       type: 'fix',
       status: 'in_progress',
       dueDate: getRelativeDate(0), // Vence hoje (alerta âmbar)
@@ -73,7 +73,7 @@
       id: 'ts-4',
       code: 'TS-104',
       title: 'Automatizar pipeline de deploy com testes de regressão (CI/CD)',
-      assignee: 'Lucas (QA)',
+      assignee: 'Júlia Egito',
       type: 'refactor',
       status: 'backlog',
       dueDate: getRelativeDate(7),
@@ -84,7 +84,7 @@
       id: 'ts-5',
       code: 'TS-105',
       title: 'Refatoração da camada de autenticação JWT e renovação de token',
-      assignee: 'Bia (Front-end)',
+      assignee: 'Leonel',
       type: 'refactor',
       status: 'completed',
       dueDate: getRelativeDate(-2),
@@ -92,7 +92,7 @@
       comments: [
         {
           id: 'c4',
-          author: 'Lucas (QA)',
+          author: 'Leonel',
           text: 'Validado em staging! Sem problemas de expiração de sessão.',
           date: 'Ontem às 16:40'
         }
