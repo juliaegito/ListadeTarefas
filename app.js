@@ -1,20 +1,11 @@
-
-/**
- * TechSolutions — Sistema de Gerenciamento de Tarefas
- * Baseado no Estudo de Caso 2 da TechSolutions Tecnologia S.A.
- * "Do backlog ao deploy, sem perder o fio."
- */
-
 (function () {
   'use strict';
 
-  // Chaves de armazenamento
   const STORAGE_KEY_TASKS = 'techsolutions_tasks_v1';
   const STORAGE_KEY_THEME = 'techsolutions_theme_v1';
   const STORAGE_KEY_VIEW = 'techsolutions_view_v1';
   const STORAGE_KEY_LAST_AUTHOR = 'techsolutions_last_author_v1';
 
-  // Tarefas iniciais contextualizadas com o briefing da TechSolutions
   const INITIAL_TASKS = [
     {
       id: 'ts-1',
@@ -23,7 +14,7 @@
       assignee: 'Júlia Egito',
       type: 'feature',
       status: 'in_progress',
-      dueDate: getRelativeDate(1), // Vence amanhã (alerta âmbar)
+      dueDate: getRelativeDate(1),
       description: 'Desenvolver serviço assíncrono para processar telemetria de frotas e emitir estimativas de chegada para transportadoras.',
       comments: [
         {
@@ -65,7 +56,7 @@
       assignee: 'Fernanda',
       type: 'fix',
       status: 'in_progress',
-      dueDate: getRelativeDate(0), // Vence hoje (alerta âmbar)
+      dueDate: getRelativeDate(0),
       description: 'Tabelas legadas sem índice na coluna cep_destino estão causando lock no banco em horários de pico.',
       comments: []
     },
@@ -100,24 +91,21 @@
     }
   ];
 
-  // Estado da aplicação
   let tasks = [];
   let currentFilter = {
     search: '',
     assignee: 'ALL',
     type: 'ALL'
   };
-  let currentView = 'board'; // 'board' ou 'list'
+  let currentView = 'board';
   let activeDetailTask = null;
   let draggedTaskId = null;
 
-  // Elementos do DOM
   const dom = {
-    // Tema
+
     themeToggleBtn: document.getElementById('themeToggleBtn'),
     themeIcon: document.getElementById('themeIcon'),
-    
-    // Métricas e Sprint
+
     sprintProgressBar: document.getElementById('sprintProgressBar'),
     sprintProgressPercent: document.getElementById('sprintProgressPercent'),
     statTotal: document.getElementById('statTotal'),
@@ -125,7 +113,6 @@
     statUrgent: document.getElementById('statUrgent'),
     statCompleted: document.getElementById('statCompleted'),
 
-    // Filtros e Busca
     searchInput: document.getElementById('searchInput'),
     clearSearchBtn: document.getElementById('clearSearchBtn'),
     memberFilter: document.getElementById('memberFilter'),
@@ -135,7 +122,6 @@
     btnClearCompleted: document.getElementById('btnClearCompleted'),
     btnResetData: document.getElementById('btnResetData'),
 
-    // Containers de Visualização
     boardContainer: document.getElementById('boardContainer'),
     listContainer: document.getElementById('listContainer'),
     listTableBody: document.getElementById('listTableBody'),
@@ -150,7 +136,6 @@
       completed: document.getElementById('countCompleted')
     },
 
-    // Modal de Criação / Edição
     taskModal: document.getElementById('taskModal'),
     taskForm: document.getElementById('taskForm'),
     btnNewTask: document.getElementById('btnNewTask'),
@@ -167,7 +152,6 @@
     taskStatusInput: document.getElementById('taskStatus'),
     taskDescriptionInput: document.getElementById('taskDescription'),
 
-    // Modal de Detalhes
     detailModal: document.getElementById('detailModal'),
     detailCloseBtn: document.getElementById('detailCloseBtn'),
     detailCode: document.getElementById('detailCode'),
@@ -181,19 +165,14 @@
     btnEditFromDetail: document.getElementById('btnEditFromDetail'),
     btnDeleteFromDetail: document.getElementById('btnDeleteFromDetail'),
 
-    // Comentários
     commentsList: document.getElementById('commentsList'),
     commentForm: document.getElementById('commentForm'),
     commentAuthor: document.getElementById('commentAuthor'),
     commentText: document.getElementById('commentText'),
 
-    // Toast
     toastContainer: document.getElementById('toastContainer')
   };
 
-  // =========================================================================
-  // INICIALIZAÇÃO
-  // =========================================================================
   function init() {
     loadTheme();
     loadTasks();
@@ -202,9 +181,6 @@
     render();
   }
 
-  // =========================================================================
-  // PERSISTÊNCIA & STORAGE
-  // =========================================================================
   function loadTasks() {
     try {
       const stored = localStorage.getItem(STORAGE_KEY_TASKS);
@@ -237,9 +213,6 @@
     }
   }
 
-  // =========================================================================
-  // TEMA (MODO CLARO / ESCURO)
-  // =========================================================================
   function loadTheme() {
     const savedTheme = localStorage.getItem(STORAGE_KEY_THEME) || 'light';
     applyTheme(savedTheme);
@@ -274,9 +247,6 @@
     }
   }
 
-  // =========================================================================
-  // VIEW PREFERENCE (BOARD VS LIST)
-  // =========================================================================
   function loadViewPreference() {
     const saved = localStorage.getItem(STORAGE_KEY_VIEW);
     if (saved === 'list') {
@@ -303,14 +273,10 @@
     render();
   }
 
-  // =========================================================================
-  // RENDERIZAÇÃO PRINCIPAL & DASHBOARD
-  // =========================================================================
   function render() {
     updateAssigneeFilterAndDatalist();
     const filtered = getFilteredTasks();
 
-    // Atualizar Métricas e Barra de Sprint
     updateMetrics();
 
     if (currentView === 'board') {
@@ -337,7 +303,6 @@
 
     const uniqueNames = Array.from(namesSet).sort((a, b) => a.localeCompare(b));
 
-    // Atualizar o select de filtro preservando a seleção atual
     const currentVal = currentFilter.assignee || 'ALL';
     dom.memberFilter.innerHTML = '<option value="ALL">Todos os Responsáveis</option>';
     uniqueNames.forEach(name => {
@@ -353,7 +318,6 @@
       dom.memberFilter.value = 'ALL';
     }
 
-    // Atualizar o datalist de sugestões
     if (dom.assigneeSuggestions) {
       dom.assigneeSuggestions.innerHTML = '';
       uniqueNames.forEach(name => {
@@ -366,7 +330,7 @@
 
   function getFilteredTasks() {
     return tasks.filter(task => {
-      // Busca por código, título ou descrição
+
       if (currentFilter.search) {
         const query = currentFilter.search.toLowerCase();
         const matchesCode = task.code.toLowerCase().includes(query);
@@ -375,12 +339,10 @@
         if (!matchesCode && !matchesTitle && !matchesDesc) return false;
       }
 
-      // Filtro de Responsável
       if (currentFilter.assignee !== 'ALL' && task.assignee !== currentFilter.assignee) {
         return false;
       }
 
-      // Filtro de Tipo
       if (currentFilter.type !== 'ALL' && task.type !== currentFilter.type) {
         return false;
       }
@@ -400,21 +362,16 @@
     dom.statUrgent.textContent = urgent;
     dom.statCompleted.textContent = completed;
 
-    // Percentual do Sprint
     const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
     dom.sprintProgressBar.style.width = `${pct}%`;
     dom.sprintProgressPercent.textContent = `${pct}%`;
 
-    // Atualizar contadores das colunas com base no filtro atual
     const filtered = getFilteredTasks();
     dom.counts.backlog.textContent = filtered.filter(t => t.status === 'backlog').length;
     dom.counts.in_progress.textContent = filtered.filter(t => t.status === 'in_progress').length;
     dom.counts.completed.textContent = filtered.filter(t => t.status === 'completed').length;
   }
 
-  // =========================================================================
-  // RENDERIZAÇÃO: QUADRO KANBAN
-  // =========================================================================
   function renderBoard(filteredTasks) {
     const groups = {
       backlog: [],
@@ -452,14 +409,13 @@
   function createCardElement(task) {
     const card = document.createElement('div');
     card.className = `task-card card-${task.type} ${task.status === 'completed' ? 'card-completed' : ''}`;
-    
+
     const urgent = task.status !== 'completed' && isUrgent(task.dueDate);
     if (urgent) card.classList.add('card-urgent');
 
     card.setAttribute('draggable', 'true');
     card.setAttribute('data-id', task.id);
 
-    // Iniciais do responsável
     const initials = getInitials(task.assignee);
     const dateFormatted = formatDate(task.dueDate);
     const commentCount = task.comments ? task.comments.length : 0;
@@ -516,10 +472,8 @@
       </div>
     `;
 
-    // Eventos do Card
     card.addEventListener('click', () => openDetailModal(task));
 
-    // Ações Rápidas no Card
     card.querySelectorAll('[data-action]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -532,16 +486,12 @@
       });
     });
 
-    // Drag and Drop
     card.addEventListener('dragstart', handleDragStart);
     card.addEventListener('dragend', handleDragEnd);
 
     return card;
   }
 
-  // =========================================================================
-  // RENDERIZAÇÃO: MODO LISTA COMPACTA
-  // =========================================================================
   function renderList(filteredTasks) {
     dom.listTableBody.innerHTML = '';
 
@@ -591,13 +541,11 @@
         </td>
       `;
 
-      // Checkbox
       const chk = tr.querySelector('.table-checkbox');
       chk.addEventListener('change', () => {
         updateTaskStatus(task.id, chk.checked ? 'completed' : 'in_progress');
       });
 
-      // Detalhes
       tr.querySelector('[data-action="view"]').addEventListener('click', () => {
         openDetailModal(task);
       });
@@ -606,9 +554,6 @@
     });
   }
 
-  // =========================================================================
-  // DRAG & DROP NATIVO SUAVE
-  // =========================================================================
   function handleDragStart(e) {
     draggedTaskId = this.getAttribute('data-id');
     this.classList.add('dragging');
@@ -649,9 +594,6 @@
     });
   }
 
-  // =========================================================================
-  // CRUD: ATUALIZAR STATUS & TAREFAS
-  // =========================================================================
   function updateTaskStatus(taskId, newStatus) {
     const task = tasks.find(t => t.id === taskId);
     if (!task || task.status === newStatus) return;
@@ -660,7 +602,6 @@
     saveTasks();
     render();
 
-    // Tom de voz levemente descontraído do PDF
     if (newStatus === 'completed') {
       showToast(`Tarefa ${task.code} movida para Concluído! 🎉`, 'success');
     } else if (newStatus === 'in_progress') {
@@ -669,7 +610,6 @@
       showToast(`Tarefa ${task.code} movida para o Backlog.`, 'info');
     }
 
-    // Se o modal de detalhes estiver aberto nessa tarefa, atualiza
     if (activeDetailTask && activeDetailTask.id === taskId) {
       dom.detailStatusSelect.value = newStatus;
     }
@@ -690,9 +630,6 @@
     }
   }
 
-  // =========================================================================
-  // MODAL: CRIAR / EDITAR
-  // =========================================================================
   function openTaskModal(taskToEdit = null) {
     dom.taskForm.reset();
 
@@ -738,7 +675,7 @@
     const description = dom.taskDescriptionInput.value.trim();
 
     if (id) {
-      // Edição
+
       const task = tasks.find(t => t.id === id);
       if (task) {
         task.title = title;
@@ -750,7 +687,7 @@
         showToast(`Tarefa ${task.code} atualizada!`, 'success');
       }
     } else {
-      // Criação
+
       const code = dom.modalCodeTag.textContent;
       const newTask = {
         id: 'ts-' + Date.now(),
@@ -771,7 +708,6 @@
     closeTaskModal();
     render();
 
-    // Se estava visualizando os detalhes, atualiza a tela de detalhes
     if (activeDetailTask && id && activeDetailTask.id === id) {
       const updated = tasks.find(t => t.id === id);
       if (updated) openDetailModal(updated);
@@ -787,9 +723,6 @@
     return max + 1;
   }
 
-  // =========================================================================
-  // MODAL: DETALHES & COMENTÁRIOS
-  // =========================================================================
   function openDetailModal(task) {
     activeDetailTask = task;
 
@@ -799,11 +732,9 @@
     dom.detailAssignee.textContent = task.assignee;
     dom.detailStatusSelect.value = task.status;
 
-    // Badge de tipo
     dom.detailTypeBadge.className = `badge-type badge-type-${task.type}`;
     dom.detailTypeBadge.textContent = getTypeLabel(task.type);
 
-    // Data de vencimento
     const urgent = task.status !== 'completed' && isUrgent(task.dueDate);
     dom.detailDueDateText.textContent = task.dueDate ? formatDate(task.dueDate) : 'Sem prazo definido';
     if (urgent) {
@@ -817,13 +748,11 @@
       dom.detailDueDateBadge.style.padding = '0';
     }
 
-    // Pré-carregar último autor usado nos comentários, se houver
     const savedAuthor = localStorage.getItem(STORAGE_KEY_LAST_AUTHOR);
     if (savedAuthor && !dom.commentAuthor.value) {
       dom.commentAuthor.value = savedAuthor;
     }
 
-    // Renderizar comentários
     renderComments(task);
 
     dom.detailModal.classList.remove('hidden');
@@ -860,7 +789,6 @@
       dom.commentsList.appendChild(div);
     });
 
-    // Rolar para o final
     dom.commentsList.scrollTop = dom.commentsList.scrollHeight;
   }
 
@@ -905,9 +833,6 @@
     }
   }
 
-  // =========================================================================
-  // FEEDBACK TOASTS
-  // =========================================================================
   function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
@@ -923,18 +848,13 @@
     }, 3200);
   }
 
-  // =========================================================================
-  // LISTENERS E EVENTOS
-  // =========================================================================
   function setupEventListeners() {
-    // Tema
+
     dom.themeToggleBtn.addEventListener('click', toggleTheme);
 
-    // Visualização
     dom.viewBoardBtn.addEventListener('click', () => setView('board'));
     dom.viewListBtn.addEventListener('click', () => setView('list'));
 
-    // Filtros e Busca
     dom.searchInput.addEventListener('input', (e) => {
       currentFilter.search = e.target.value.trim();
       dom.clearSearchBtn.classList.toggle('hidden', !currentFilter.search);
@@ -958,19 +878,15 @@
       render();
     });
 
-    // Limpar Concluídas
     dom.btnClearCompleted.addEventListener('click', clearCompletedTasks);
 
-    // Resetar Dados Padrão
     dom.btnResetData.addEventListener('click', resetToDefault);
 
-    // Modal Nova Tarefa
     dom.btnNewTask.addEventListener('click', () => openTaskModal());
     dom.modalCloseBtn.addEventListener('click', closeTaskModal);
     dom.modalCancelBtn.addEventListener('click', closeTaskModal);
     dom.taskForm.addEventListener('submit', handleTaskFormSubmit);
 
-    // Modal Detalhes
     dom.detailCloseBtn.addEventListener('click', closeDetailModal);
     dom.detailStatusSelect.addEventListener('change', (e) => {
       if (activeDetailTask) {
@@ -992,10 +908,8 @@
       }
     });
 
-    // Comentários
     dom.commentForm.addEventListener('submit', handleCommentSubmit);
 
-    // Fechar modais ao clicar no fundo ou apertar ESC
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         closeTaskModal();
@@ -1012,13 +926,9 @@
       });
     });
 
-    // Configurar Drag & Drop
     setupDragAndDrop();
   }
 
-  // =========================================================================
-  // HELPERS & FORMATAÇÃO
-  // =========================================================================
   function getRelativeDate(daysOffset) {
     const d = new Date();
     d.setDate(d.getDate() + daysOffset);
@@ -1030,7 +940,7 @@
     const due = new Date(dueDateStr + 'T23:59:59');
     const now = new Date();
     const diffHours = (due - now) / (1000 * 60 * 60);
-    // Vence hoje, amanhã ou já venceu
+
     return diffHours <= 36;
   }
 
